@@ -21,6 +21,8 @@ body {
     justify-content: center;
     align-items: center;
     padding: 20px;
+    /* Added padding top so the banner doesn't cover the top of the card */
+    padding-top: 60px; 
 }
 
 .dark-screen.active { display: flex; }
