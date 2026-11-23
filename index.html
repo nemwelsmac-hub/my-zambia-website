@@ -30,7 +30,7 @@
         ⚠️ SIMULATION DEMO ONLY - DO NOT ENTER REAL SMS CODES ⚠️
     </div>
 
-    <!-- Screen 1: Language Selection -->
+    <!-- Screen 1: Language Selection (English Only) -->
     <div id="language-screen" class="dark-screen active">
         <div class="dark-card popup-card">
             <div class="logo-container">
@@ -40,27 +40,17 @@
                 </svg>
             </div>
 
-            <h2 class="dark-title" data-translate="lang_title_1">Choose your <span class="highlight-yellow" data-translate="lang_title_2">language</span></h2>
-            <p class="dark-subtitle" data-translate="lang_subtitle">Select your language to continue</p>
+            <h2 class="dark-title">Choose your <span class="highlight-yellow">language</span></h2>
+            <p class="dark-subtitle">Select your language to continue</p>
 
             <div class="lang-options">
-                <div class="lang-option" onclick="setLanguage('en')">
+                <div class="lang-option selected" onclick="setLanguage('en')">
                     <img src="https://flagcdn.com/w40/gb.png" alt="English Flag">
                     <div class="lang-text"><strong>English</strong><span>Continue in English</span></div>
                     <div class="radio-circle"></div>
                 </div>
-                <div class="lang-option" onclick="setLanguage('fr')">
-                    <img src="https://flagcdn.com/w40/fr.png" alt="French Flag">
-                    <div class="lang-text"><strong>Français</strong><span>Continuer en français</span></div>
-                    <div class="radio-circle"></div>
-                </div>
-                <div class="lang-option selected" onclick="setLanguage('cam')">
-                    <img src="https://flagcdn.com/w40/cm.png" alt="Cameroon Flag">
-                    <div class="lang-text"><strong>Camfranglais</strong><span>Continue in Camfranglais</span></div>
-                    <div class="radio-circle"></div>
-                </div>
             </div>
-            <small class="dark-footer" data-translate="lang_footer">You can change it anytime</small>
+            <small class="dark-footer">You can change it anytime</small>
         </div>
     </div>
 
