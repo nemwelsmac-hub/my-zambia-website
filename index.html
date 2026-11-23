@@ -67,10 +67,11 @@
 
                 <div class="slider-group">
                     <div class="slider-labels">
-                        <span><span data-translate="calc_amount">Amount</span>: <strong class="highlight-yellow" id="amountDisplay">ZMW 410,000</strong></span>
+                        <span><span data-translate="calc_amount">Amount</span>: <strong class="highlight-yellow" id="amountDisplay">ZMW 15,000</strong></span>
                     </div>
-                    <input type="range" id="loanAmount" min="10000" max="1000000" step="10000" value="410000" oninput="updateLoanValue()">
-                    <div class="range-limits"><span>ZMW 10,000</span><span>ZMW 1,000,000</span></div>
+                    <!-- Changed min to 500, max to 100000, step to 500, and default value to 15000 -->
+                    <input type="range" id="loanAmount" min="500" max="100000" step="500" value="15000" oninput="updateLoanValue()">
+                    <div class="range-limits"><span>ZMW 500</span><span>ZMW 100,000</span></div>
                 </div>
 
                 <div class="slider-group">
@@ -82,7 +83,7 @@
 
                 <div class="result-box">
                     <p data-translate="calc_monthly">Monthly Payment</p>
-                    <h2 class="highlight-yellow" id="monthlyPayment">ZMW 38,267</h2>
+                    <h2 class="highlight-yellow" id="monthlyPayment">ZMW 1,400</h2>
                 </div>
 
                 <button class="btn-primary" onclick="goToForm()" data-translate="calc_btn">START APPLICATION</button>
