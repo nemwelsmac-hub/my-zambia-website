@@ -56,6 +56,7 @@ function updateLoanValue() {
     const amount = parseInt(amountSlider.value);
     const term = parseInt(termSlider.value);
     
+    // Numbers will now format with commas automatically (e.g. 15,000)
     amountDisplay.innerText = `ZMW ${amount.toLocaleString()}`;
     termDisplay.innerText = `${term} Months`; 
 
