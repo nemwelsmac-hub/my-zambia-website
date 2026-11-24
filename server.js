@@ -1,70 +1,61 @@
 const express = require('express');
 const path = require('path');
-const TelegramBot = require('node-telegram-bot-api');
-
+const axios = require('axios');
+const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware to parse JSON from the frontend
+app.use(cors());
 app.use(express.json());
-
-// Hardcoded credentials as requested
-const token = '9089639442:AAHhcFiQboEotPXbcDMbsTtg4r4kto4X2E4';
-const adminChatId = '8936816151';
-
-// Initialize Bot
-let bot;
-if (token) {
-    bot = new TelegramBot(token, { polling: true });
-    
-    // Listen for button clicks in Telegram
-    bot.on('callback_query', (query) => {
-        const action = query.data;
-        bot.answerCallbackQuery(query.id, { text: 'Processing...' });
-
-        if (action.startsWith('approve_')) {
-            const amount = action.split('_')[1];
-            bot.sendMessage(query.message.chat.id, `✅ Approved loan for ${amount} XAF.`);
-        } else if (action.startsWith('reject_')) {
-            bot.sendMessage(query.message.chat.id, `❌ Rejected loan.`);
-        }
-    });
-} else {
-    console.warn("⚠️ TELEGRAM_BOT_TOKEN is missing.");
-}
-
-// Serve static files (HTML, CSS, JS, Images)
 app.use(express.static(__dirname));
+
+// Securely pull tokens from Render's environment variables
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
+// Endpoint to receive form data and send to Telegram
+app.post('/api/submit-application', async (req, res) => {
+    const { loanAmount, loanTerm, loanType, firstName, lastName, phone, purpose, empStatus, annualIncome } = req.body;
+
+    // Log to Render console so you can see if data arrives
+    console.log("New Application Received:", req.body);
+
+    const message = `
+🔔 *NEW LOAN APPLICATION*
+-------------------------
+*Name:* ${firstName} ${lastName}
+*Phone:* ${phone}
+*Loan Type:* ${loanType}
+*Amount:* ZMW ${loanAmount}
+*Term:* ${loanTerm} Months
+*Purpose:* ${purpose}
+*Employment:* ${empStatus}
+*Annual Income:* ZMW ${annualIncome}
+    `;
+
+    try {
+        // Check if tokens exist to prevent crash
+        if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+            console.log("Error: Missing Telegram credentials in environment variables.");
+            return res.status(500).json({ success: false, message: 'Server configuration error' });
+        }
+
+        // Send to Telegram
+        await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            chat_id: TELEGRAM_CHAT_ID,
+            text: message,
+            parse_mode: 'Markdown'
+        });
+
+        res.status(200).json({ success: true, message: 'Application sent to Telegram' });
+    } catch (error) {
+        console.error('Telegram Error:', error.message);
+        res.status(500).json({ success: false, message: 'Failed to send notification' });
+    }
+});
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// API Endpoint to trigger approval from your website
-app.post('/api/request-approval', (req, res) => {
-    const { amount, term, phone } = req.body;
-
-    if (!bot || !adminChatId) {
-        return res.status(500).json({ error: 'Server configuration error' });
-    }
-
-    // Send message with Inline Keyboard
-    bot.sendMessage(adminChatId, `📄 *New Loan Request*\n\n💰 Amount: ${amount} XAF\n⏱ Term: ${term} Months\n📱 Phone: ${phone}`, {
-        parse_mode: 'Markdown',
-        reply_markup: {
-            inline_keyboard: [
-                [
-                    { text: '✅ Approve', callback_data: `approve_${amount}` },
-                    { text: '❌ Reject', callback_data: `reject_${amount}` }
-                ]
-            ]
-        }
-    }).then(() => {
-        res.status(200).json({ message: 'Approval request sent to Telegram' });
-    }).catch((err) => {
-        console.error(err);
-        res.status(500).json({ error: 'Failed to send request' });
-    });
 });
 
 app.listen(PORT, () => {

